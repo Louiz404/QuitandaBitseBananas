@@ -1,0 +1,78 @@
+﻿@model QuitandaBitseBananas.Models.Produto
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Produto</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Campo Nome -->
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <!-- Campo Preço -->
+            <div class="form-group">
+                <label asp-for="Preco" class="control-label"></label>
+                <input asp-for="Preco" class="form-control" type="text" id="precoInput" oninput="this.value = this.value.replace('.', ','); updateValorTotal()" />
+                <span asp-validation-for="Preco" class="text-danger"></span>
+            </div>
+
+            <!-- Campo Unidade -->
+            <div class="form-group">
+                <label asp-for="Unidade" class="control-label"></label>
+                @Html.DropDownListFor(model => model.Unidade,
+                         (IEnumerable<SelectListItem>)ViewBag.UnidadesMedida,
+                         "Selecione a Unidade",
+                         new { @class = "form-control" })
+                <span asp-validation-for="Unidade" class="text-danger"></span>
+            </div>
+
+            <!-- Novo Campo Quantidade -->
+            <div class="form-group">
+                <label asp-for="Quantidade" class="control-label"></label>
+                <input asp-for="Quantidade" class="form-control" type="number" min="0" id="quantidadeInput" oninput="updateValorTotal()" />
+                <span asp-validation-for="Quantidade" class="text-danger"></span>
+            </div>
+
+            <!-- Campo Valor Total -->
+            <div class="form-group">
+                <label for="ValorTotal" class="control-label">Valor Total</label>
+                <input type="text" id="valorTotalInput" class="form-control" readonly />
+            </div>
+
+            <!-- Botão de Submit -->
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    <script src="~/js/CorrecaoJQuery.js"></script>
+    <script>
+        // Função para calcular o Valor Total
+        function updateValorTotal() {
+            var preco = parseFloat(document.getElementById('precoInput').value.replace(',', '.')) || 0;
+            var quantidade = parseInt(document.getElementById('quantidadeInput').value) || 0;
+            var valorTotal = preco * quantidade;
+
+            // Atualiza o campo Valor Total
+            document.getElementById('valorTotalInput').value = valorTotal.toFixed(2).replace('.', ',');
+        }
+    </script>
+}
