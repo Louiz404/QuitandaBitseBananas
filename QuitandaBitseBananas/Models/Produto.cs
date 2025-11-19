@@ -41,6 +41,24 @@ namespace QuitandaBitseBananas.Models
         public decimal ValorTotal { get; set; } // Novo campo para armazenar o valor total (Preço * Quantidade)
     }
 
+    public class Categoria
+    { 
+        public int Id { get; set; }
+        public string Nome { get; set; }
+    }
+
+    public class Fornecedor
+    {
+        public int Id { get; set; }
+        public string nomeFornecedor { get; set; }
+    }
+
+    public class Estoque
+    {
+        public int Quantidade { get; set; }
+        public Produto Produto { get; set; }
+    }
+
     public enum UnidadeMedida
     {
         [Display(Name = "Quilograma")]
