@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QuitandaBitseBananas.Data;
 
@@ -11,9 +12,11 @@ using QuitandaBitseBananas.Data;
 namespace QuitandaBitseBananas.Migrations
 {
     [DbContext(typeof(QuitandaBitseBananasContext))]
-    partial class QuitandaBitseBananasContextModelSnapshot : ModelSnapshot
+    [Migration("20251121173450_AdicionarImagem")]
+    partial class AdicionarImagem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

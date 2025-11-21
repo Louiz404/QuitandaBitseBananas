@@ -17,10 +17,12 @@ namespace QuitandaBitseBananas.Controllers
     public class ProdutosController : Controller
     {
         private readonly QuitandaBitseBananasContext _context;
+        private readonly IWebHostEnvironment hostEnvironment;
 
-        public ProdutosController(QuitandaBitseBananasContext context)
+        public ProdutosController(QuitandaBitseBananasContext context, IWebHostEnvironment hostEnvironment)
         {
             _context = context;
+            this.hostEnvironment = hostEnvironment;
         }
 
         public async Task<IActionResult> Index(string termoPesquisa)
@@ -65,7 +67,7 @@ namespace QuitandaBitseBananas.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Preco,Unidade,Quantidade,DataEntrada,DataValidade,CategoriaId,FornecedorId")] Produto produto)
+        public async Task<IActionResult> Create([Bind("Id,Name,Preco,Unidade,Quantidade,DataEntrada,DataValidade,CategoriaId,FornecedorId")] Produto produto, IFormFile arquivoImagem)
         {
             if (ModelState.IsValid)
             {
@@ -76,6 +78,24 @@ namespace QuitandaBitseBananas.Controllers
                 {
                     produto.DataEntrada = DateTime.Now;
 
+                }
+                if (arquivoImagem != null)
+                {
+                    string wwwRootPath = hostEnvironment.WebRootPath;
+                    string nomeArquivo = Guid.NewGuid().ToString() + Path.GetExtension(arquivoImagem.FileName);
+                    string caminhoArquivo = Path.Combine(wwwRootPath, "imagens");
+
+                    if (!Directory.Exists(caminhoArquivo))
+                    {
+                        Directory.CreateDirectory(caminhoArquivo);
+                    }
+
+                    string caminhoCompleto = Path.Combine(caminhoArquivo, nomeArquivo);
+                    using (var fileStream = new FileStream(caminhoCompleto, FileMode.Create))
+                    {
+                        await arquivoImagem.CopyToAsync(fileStream);
+                    }
+                    produto.Imagem = nomeArquivo;
                 }
 
                 _context.Add(produto);
@@ -126,17 +146,67 @@ namespace QuitandaBitseBananas.Controllers
     
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Preco,Unidade,Quantidade,DataEntrada,DataValidade,CategoriaId,FornecedorId")] Produto produto)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Preco,Unidade,Quantidade,DataEntrada,DataValidade,CategoriaId,FornecedorId,Imagem")] Produto produto, IFormFile arquivoImagem, bool removerImagem)
         {
             if (id != produto.Id) return NotFound();
-
+            ModelState.Remove("arquivoImagem");
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // 1. BUSCAR O PRODUTO ORIGINAL NO BANCO (Para saber qual era a imagem antiga)
+                    // Usamos AsNoTracking para não travar o Entity Framework, pois vamos atualizar o 'produto' que veio do form
+                    var produtoOriginal = await _context.Produto.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+
+                    // Caminho base das imagens
+                    string caminhoPasta = Path.Combine(hostEnvironment.WebRootPath, "imagens");
+                    
+                    // CENÁRIO A: REMOVER A FOTO (Checkbox marcado)
+                    if (removerImagem)
+                    {
+                        if (!string.IsNullOrEmpty(produtoOriginal.Imagem))
+                        {
+                            string caminhoImagemAntiga = Path.Combine(caminhoPasta, produtoOriginal.Imagem);
+                            if (System.IO.File.Exists(caminhoImagemAntiga))
+                            {
+                                System.IO.File.Delete(caminhoImagemAntiga);
+                            }
+                            
+                            // Zera o campo no banco
+                            produto.Imagem = null;
+                        }
+                    }
+
+                    // CENÁRIO B: TROCAR A FOTO (Novo arquivo enviado)
+                    else if (arquivoImagem != null)
+                    {
+                        if (!string.IsNullOrEmpty(produtoOriginal.Imagem))
+                        {
+                            string caminhoImagemAntiga = Path.Combine(caminhoPasta, produtoOriginal.Imagem);
+                            if (System.IO.File.Exists(caminhoImagemAntiga))
+                            {
+                                System.IO.File.Delete(caminhoImagemAntiga);
+                            }
+                        }
+                        string nomeArquivo = Guid.NewGuid().ToString() + Path.GetExtension(arquivoImagem.FileName);
+                        string caminhoCompleto = Path.Combine(caminhoPasta, nomeArquivo);
+                        using (var stream = new FileStream(caminhoCompleto, FileMode.Create))
+                        {
+                            await arquivoImagem.CopyToAsync(stream);
+                        }
+                        produto.Imagem = nomeArquivo;
+
+                    }
+                    
+                    // CENÁRIO C: MANTER A ANTIGA (Nenhum arquivo novo e checkbox desmarcado)
+                    else 
+                    {
+                    produto.Imagem = produtoOriginal.Imagem;
+                    }
+
                     // Calculando o valor total (Preço x Quantidade)
                     produto.ValorTotal = produto.Preco * produto.Quantidade;
-                    
+                   
                     _context.Update(produto);
                     await _context.SaveChangesAsync();
                 }

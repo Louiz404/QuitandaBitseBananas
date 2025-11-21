@@ -58,6 +58,10 @@ namespace QuitandaBitseBananas.Models
         [Column(TypeName = "decimal(18, 2)")]
         public decimal ValorTotal { get; set; } // Novo campo para armazenar o valor total (Preço * Quantidade)
 
+        // Imagem do Produto
+        [Display(Name = "Imagem do Produto")]
+        public string? Imagem { get; set; }
+
         // RELACIONAMENTOS
         public int CategoriaId { get; set; }
         public Categoria? Categoria { get; set; }

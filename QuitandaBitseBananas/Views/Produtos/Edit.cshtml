@@ -7,11 +7,36 @@
 <h1>Editar Produto</h1>
 <hr />
 
-<form asp-action="Edit">
+<form asp-action="Edit" enctype="multipart/form-data">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="DataEntrada" />
+    <input type="hidden" id="removerImagemInput" name="removerImagem" value="false" />
+
+
+    <div class="form-group mb-3 p-3 border rounded bg-light">
+        <label class="control-label fw-bold">Foto do Produto</label>
+
+        <div class="row align-items-center">
+            <div class="col-md-4 text-center">
+                @if (!string.IsNullOrEmpty(Model.Imagem))
+                {
+                    <img id="imagemAtualExibida" src="~/imagens/@Model.Imagem" asp-append-version="true" alt="Foto Atual" style="max-width: 100%; max-height: 150px;" class="rounded mb-2" />
+                    <button type="button" class="btn btn-danger mt-2" onclick="removerFoto()">
+                        <i class="fa fa-trash"></i> Remover foto
+                    </button>
+                }
+                else
+                {
+                    <span class="text-muted">Sem foto atual</span>
+                }
+            </div>
+
+            <div class="col-md-8">
+                <label for="arquivoImagem" class="form-label">Trocar Foto (Opcional)</label>
+                <input type="file" name="arquivoImagem" class="form-control" accept=".jpg,.jpeg,.png" />
+                <small class="text-muted">Se escolher um arquivo, a foto anterior será substituída.</small>
+            </div>
 
     <div class="row">
         <div class="col-md-6 form-group mb-3">
@@ -106,5 +131,16 @@
         document.addEventListener("DOMContentLoaded", function() {
             updateValorTotal();
         });
+            function removerFoto() {
+            // marca que a foto deve ser removida no POST
+            document.getElementById("removerImagemInput").value = "true";
+
+            // opcional: some com a imagem na hora
+            const img = document.getElementById("imagemAtualExibida");
+            if (img) img.style.display = "none";
+
+            alert("A foto será removida ao salvar.");
+        }
+
     </script>
 }

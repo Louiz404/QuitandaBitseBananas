@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <!-- Campo Nome -->
@@ -120,6 +120,14 @@
                 <input type="text" id="valorTotalInput" class="form-control" readonly />
             </div>
             
+            <!-- Imagem -->
+            <div class="form-group mb-3">
+                <label for="arquivoImagem" class="control-label fw-bold">Foto do Produto</label>
+                <input type="file" name="arquivoImagem" id="arquivoImagem" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                <small class="text-muted">Formatos aceitos: JPG, PNG, GIF</small>
+            </div>
+
+            <hr />
             <!-- Botão de Submit -->
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
