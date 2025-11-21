@@ -1,0 +1,110 @@
+﻿@model QuitandaBitseBananas.Models.Produto
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Editar Produto</h1>
+<hr />
+
+<form asp-action="Edit">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="DataEntrada" />
+
+    <div class="row">
+        <div class="col-md-6 form-group mb-3">
+            <label asp-for="Name" class="control-label fw-bold"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-3 form-group mb-3">
+            <label asp-for="Preco" class="control-label fw-bold"></label>
+            <input asp-for="Preco" class="form-control" id="precoInput" type="number" step="0.01" oninput="updateValorTotal()" />
+            <span asp-validation-for="Preco" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-3 form-group mb-3">
+            <label asp-for="Unidade" class="control-label fw-bold"></label>
+            @Html.DropDownListFor(model => model.Unidade,
+            (IEnumerable<SelectListItem>)ViewBag.UnidadesMedida,
+                        new { @class = "form-control" })
+            <span asp-validation-for="Unidade" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 form-group mb-3">
+            <label asp-for="Quantidade" class="control-label fw-bold"></label>
+            <input asp-for="Quantidade" class="form-control" type="number" id="quantidadeInput" oninput="updateValorTotal()" />
+            <span asp-validation-for="Quantidade" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 form-group mb-3">
+            <label asp-for="DataValidade" class="control-label fw-bold"></label>
+            <input asp-for="DataValidade" class="form-control" type="date" />
+            <span asp-validation-for="DataValidade" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 form-group mb-3">
+            <label asp-for="CategoriaId" class="control-label fw-bold"></label>
+            <select asp-for="CategoriaId" class="form-control" asp-items="ViewBag.CategoriaId"></select>
+            <span asp-validation-for="CategoriaId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 form-group mb-3">
+            <label asp-for="FornecedorId" class="control-label fw-bold"></label>
+            <select asp-for="FornecedorId" class="form-control" asp-items="ViewBag.FornecedorId"></select>
+            <span asp-validation-for="FornecedorId" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="form-group mb-3 p-3 bg-light border rounded">
+        <label class="control-label fw-bold">Valor Total Atualizado (R$)</label>
+        <input type="text" id="valorTotalInput" class="form-control form-control-lg text-success" readonly />
+    </div>
+
+    <div class="form-group mt-3">
+        <input type="submit" value="Salvar Alterações" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Correção de validação Ponto/Vírgula
+        $.validator.methods.range = function (value, element, param) {
+            var globalizedValue = value.replace(",", ".");
+            return this.optional(element) || (globalizedValue >= param[0] && globalizedValue <= param[1]);
+        }
+        $.validator.methods.number = function (value, element) {
+            return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:[\s\.,]\d{3})+)(?:[\.,]\d+)?$/.test(value);
+        }
+
+        // Cálculo automático ao abrir a tela e ao editar
+        function updateValorTotal() {
+            var preco = document.getElementById('precoInput').value;
+            var quantidade = document.getElementById('quantidadeInput').value;
+            var precoNum = parseFloat(preco);
+            var qtdNum = parseFloat(quantidade);
+
+            if (!isNaN(precoNum) && !isNaN(qtdNum)) {
+                var total = precoNum * qtdNum;
+                document.getElementById('valorTotalInput').value = total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        }
+
+        // Roda o cálculo assim que a página carrega para mostrar o valor atual
+        document.addEventListener("DOMContentLoaded", function() {
+            updateValorTotal();
+        });
+    </script>
+}

@@ -1,0 +1,139 @@
+﻿@model IEnumerable<QuitandaBitseBananas.Models.Produto>
+
+@{
+    ViewData["Title"] = "Estoque Inteligente";
+}
+
+<h1 class="mb-4">📦 Gestão de Estoque</h1>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <a asp-action="Create" class="btn btn-success btn-lg shadow-sm">
+            <i class="fa fa-plus-circle"></i> Novo Produto
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <form asp-action="Index" method="get" class="d-flex">
+            <input type="text" name="termoPesquisa" class="form-control me-2"
+                   placeholder="Buscar produto..." value="@ViewData["PesquisaAtual"]">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa fa-search"></i> Buscar
+            </button>
+            @if (ViewData["PesquisaAtual"] != null)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary ms-2">Limpar</a>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="bg-dark text-white">
+            <tr>
+                <th>Produto</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Validade</th>
+                <th>Status</th>
+                <th class="text-end">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                // --- LÓGICA DO SEMÁFORO (C# dentro do HTML) ---
+                string classeCor = "";
+                string statusTexto = "Ok";
+                var diasParaVencer = (item.DataValidade - DateTime.Now).TotalDays;
+
+                if (diasParaVencer < 0)
+                {
+                    classeCor = "table-danger"; // Vermelho (Venceu)
+                    statusTexto = "VENCIDO!";
+                }
+                else if (diasParaVencer <= 5)
+                {
+                    classeCor = "table-warning"; // Amarelo (Perto de vencer)
+                    statusTexto = "Vence logo";
+                }
+                else if (item.Quantidade <= 5) // Exemplo: Menos de 5 itens
+                {
+                    classeCor = "table-info"; // Azulzinho (Estoque Baixo)
+                    statusTexto = "Estoque Baixo";
+                }
+
+                // Aplica a cor na linha inteira (tr)
+                <tr class="@classeCor">
+                    <td class="fw-bold">@item.Name</td>
+                    <td>@(item.Categoria?.Name ?? "-")</td>
+                    <td>@item.Preco.ToString("C")</td>
+
+                    <td>
+                        @if (item.Quantidade == 0)
+                        {
+                            <span class="badge bg-danger">ESGOTADO</span>
+                        }
+                        else
+                        {
+                            <span>@item.Quantidade @item.Unidade</span>
+                        }
+                    </td>
+
+                    <td>@item.DataValidade.ToShortDateString()</td>
+
+                    <td>
+                        <strong>@statusTexto</strong>
+                    </td>
+
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm bg-white rounded">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning" title="Editar"><i class="fa fa-pencil"></i></a>
+                            <button class="btn btn-outline-danger" onclick="apagarProduto(@item.Id, this)" title="Apagar"><i class="fa fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning mt-3 text-center">
+        Nenhum produto encontrado.
+    </div>
+}
+
+@section Scripts {
+    <script>
+        async function apagarProduto(idProduto, botaoClicado) {
+            // Pergunta de segurança
+            if (!confirm("Tem certeza que deseja apagar este produto?")) return;
+
+            try {
+                const resposta = await fetch('/Produtos/ApagarRapido', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    // Manda apenas o número do ID
+                    body: JSON.stringify(idProduto)
+                });
+
+                if (resposta.ok) {
+                    // Mágica: Remove a linha da tabela (TR) onde o botão estava
+                    var linhaTabela = botaoClicado.closest('tr');
+                    linhaTabela.remove();
+                } else {
+                    alert("Erro ao apagar. O produto talvez não exista mais.");
+                }
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro de conexão.");
+            }
+        }
+    </script>
+}
