@@ -67,7 +67,7 @@ O sistema utiliza uma arquitetura híbrida **MVC + API**, onde o Backend serve t
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/SEU-USUARIO/Quitanda-Bits-e-Bananas.git](https://github.com/SEU-USUARIO/Quitanda-Bits-e-Bananas.git)
+    git clone https://github.com/Louiz404/QuitandaBitseBananas.git
     ```
 
 2.  **Restaure os pacotes:**
@@ -78,7 +78,7 @@ O sistema utiliza uma arquitetura híbrida **MVC + API**, onde o Backend serve t
 3.  **Configure o Banco de Dados:**
     O projeto usa EF Core Migrations. Execute o comando para criar o banco e as tabelas (incluindo as de Identity):
     ```bash
-    dotnet ef database update
+    dotnet ef database update ou Update-Database
     ```
 
 4.  **Execute a aplicação:**
@@ -90,4 +90,4 @@ O sistema utiliza uma arquitetura híbrida **MVC + API**, onde o Backend serve t
     Acesse `https://localhost:7000` (ou a porta indicada). Registre um novo usuário para liberar o acesso ao sistema.
 
 ---
-Desenvolvido por **[Luiz Canziani]** para fins de estudo e portfólio. 👨‍💻
+Desenvolvido por **Luiz Canziani** para fins de estudo e portfólio. 👨‍💻
