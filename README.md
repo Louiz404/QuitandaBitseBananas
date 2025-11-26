@@ -49,13 +49,13 @@ O sistema utiliza uma arquitetura híbrida **MVC + API**, onde o Backend serve t
 ## 📸 Galeria do Projeto
 
 ### Dashboard Analítico
-![Dashboard](Assets/Tela-Inicial.png)
+![Dashboard](QuitandaBitseBananas/Assets/Tela-Inicial.png)
 
 ### Histórico de Movimentação (Com Auditoria)
-![Histórico](Assets/Historico.png)
+![Histórico](QuitandaBitseBananas/Assets/Historico.png)
 
 ### Gestão de Estoque (Semáforo)
-![Lista Produtos](Assets/Produtos.png)
+![Lista Produtos](QuitandaBitseBananas/Assets/Produtos.png)
 
 ## ⚙️ Como Rodar o Projeto Localmente
 
