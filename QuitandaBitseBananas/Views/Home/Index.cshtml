@@ -1,16 +1,239 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Bem vindo!</h1>
-   
-    <!-- Botões para Adicionar e Ver Produtos -->
-    <div class="btn-group mt-4" role="group" aria-label="Product Actions">
-        <!-- Botão Adicionar Produto (Amarelo) -->
-        <a href="@Url.Action("Create", "Produtos")" class="btn btn-warning">Adicionar Produto</a>
+<div class="text-center mt-4 mb-5">
+    <h1 class="display-4 fw-bold">🍎 Quitanda Bits & Bananas</h1>
+    <p class="lead text-muted">Sistema de Controle de Estoque Inteligente</p>
+</div>
 
-        <!-- Botão Ver Produtos (Verde) -->
-        <a href="@Url.Action("Index", "Produtos")" class="btn btn-success">Ver Produtos</a>
+<div class="row text-center mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary shadow h-100 border-0">
+            <div class="card-body d-flex flex-column justify-content-center">
+                <h2 class="card-title display-5 fw-bold">@ViewBag.TotalProdutos</h2>
+                <p class="card-text opacity-75">Produtos Cadastrados</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success shadow h-100 border-0">
+            <div class="card-body d-flex flex-column justify-content-center">
+                <h3 class="card-title fw-bold">@(((decimal)(ViewBag.ValorEstoque ?? 0)).ToString("C"))</h3>
+                <p class="card-text opacity-75">Capital em Estoque</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger shadow h-100 border-0">
+            <div class="card-body d-flex flex-column justify-content-center">
+                <h2 class="card-title display-5 fw-bold">@ViewBag.Vencidos</h2>
+                <p class="card-text opacity-75">Produtos Vencidos</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-dark bg-warning shadow h-100 border-0">
+            <div class="card-body d-flex flex-column justify-content-center">
+                <h2 class="card-title display-5 fw-bold">@ViewBag.EstoqueBaixo</h2>
+                <p class="card-text opacity-75">Estoque Baixo (< 10)</p>
+            </div>
+        </div>
     </div>
 </div>
+
+<hr class="my-5 w-75 mx-auto text-muted">
+
+<div class="text-center">
+    <h4 class="mb-4 text-muted">O que você deseja fazer?</h4>
+    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+        <a asp-controller="Produtos" asp-action="Index" class="btn btn-success btn-lg px-5 shadow-sm">
+            <i class="fa fa-boxes me-2"></i> Ver Estoque
+        </a>
+        <a asp-controller="Produtos" asp-action="Create" class="btn btn-warning btn-lg px-5 shadow-sm text-dark">
+            <i class="fa fa-plus-circle me-2"></i> Novo Produto
+        </a>
+        <a asp-controller="Movimentacoes" asp-action="HistoricoGeral" class="btn btn-primary btn-lg px-4">
+            <i class="fa fa-history me-2"></i> Histórico
+        </a>
+        <a asp-controller="Categorias" asp-action="Index" class="btn btn-outline-secondary btn-lg px-5 shadow-sm">
+            <i class="fa fa-tags me-2"></i> Categorias
+        </a>
+        <a asp-controller="Relatorios" asp-action="BaixarRelatorioProdutos" class="btn btn-success btn-lg px-4">
+            <i class="fa fa-file-excel me-2"></i> Baixar Excel
+        </a>
+    </div>
+</div>
+
+<div class="row mt-5 mb-5 align-items-center justify-content-center">
+    <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+        <h3 class="fw-bold text-secondary">📊 Raio-X do Estoque</h3>
+        <p class="text-muted">
+            Visualize em tempo real a saúde dos seus produtos.<br>
+            Dados consumidos via <code>API Rest</code>.
+        </p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <canvas id="meuGraficoEstoque" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-bold text-secondary">
+                🍎 Estoque por Categoria
+            </div>
+            <div class="card-body">
+                <canvas id="graficoCategorias"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-bold text-secondary">
+                📈 Movimentação (Últimos 7 dias)
+            </div>
+            <div class="card-body">
+                <canvas id="graficoMovimentacao"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5 w-75 mx-auto text-muted">
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            try {
+                // 1. Agora chamamos a rota correta: Estatisticas
+                const response = await fetch('/api/dashboard/Estatisticas');
+
+                if (!response.ok) {
+                    throw new Error('Erro na API: ' + response.status);
+                }
+
+                const dados = await response.json();
+                console.log("Dados recebidos:", dados);
+
+                const ctx = document.getElementById('meuGraficoEstoque');
+
+                // Cores do gráfico
+                const cores = ['#198754', '#ffc107', '#dc3545']; // Verde, Amarelo, Vermelho
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Estoque Saudável', 'Estoque Baixo', 'Vencidos'],
+                        datasets: [{
+                            label: 'Quantidade',
+                            data: [
+                                // Garante que não dê número negativo se a conta falhar
+                                Math.max(0, dados.totalProdutos - (dados.estoqueBaixo + dados.vencidos)),
+                                dados.estoqueBaixo,
+                                dados.vencidos
+                            ],
+                            backgroundColor: cores,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+
+            } catch (erro) {
+                console.error("Erro ao carregar gráfico:", erro);
+            }
+        });
+
+        // --- GRÁFICO 2: CATEGORIAS (ROSCA) ---
+        async function carregarGraficoCategorias() {
+            try {
+                const response = await fetch('/api/dashboard/Categorias');
+                const dados = await response.json();
+
+                // Separa os dados para o ChartJS
+                const labels = dados.map(x => x.categoria);
+                const valores = dados.map(x => x.quantidade);
+
+                const ctx = document.getElementById('graficoCategorias');
+                new Chart(ctx, {
+                    type: 'pie', // Pizza
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: valores,
+                            backgroundColor: [
+                                '#0d6efd', '#6610f2', '#d63384', '#fd7e14', '#ffc107', '#20c997'
+                            ], // Várias cores para ficar bonito
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        // --- GRÁFICO 3: MOVIMENTAÇÃO 7 DIAS (BARRAS) ---
+        async function carregarGraficoMovimentacao() {
+            try {
+                const response = await fetch('/api/dashboard/MovimentacaoDias');
+                const dados = await response.json();
+
+                const ctx = document.getElementById('graficoMovimentacao');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: dados.dias, // Ex: 20/11, 21/11...
+                        datasets: [
+                            {
+                                label: 'Entradas (+)',
+                                data: dados.entradas,
+                                backgroundColor: '#198754', // Verde
+                                borderRadius: 5
+                            },
+                            {
+                                label: 'Saídas (-)',
+                                data: dados.saidas,
+                                backgroundColor: '#dc3545', // Vermelho
+                                borderRadius: 5
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        // Chama as funções quando a página carregar
+        document.addEventListener("DOMContentLoaded", function () {
+            carregarGraficoCategorias();
+            carregarGraficoMovimentacao();
+        });
+    </script>
+}

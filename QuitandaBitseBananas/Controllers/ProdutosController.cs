@@ -11,9 +11,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using QuitandaBitseBananas.Data;
 using QuitandaBitseBananas.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QuitandaBitseBananas.Controllers
 {
+    [Authorize]
     public class ProdutosController : Controller
     {
         private readonly QuitandaBitseBananasContext _context;
@@ -67,8 +69,13 @@ namespace QuitandaBitseBananas.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Preco,Unidade,Quantidade,DataEntrada,DataValidade,CategoriaId,FornecedorId")] Produto produto, IFormFile arquivoImagem)
+        public async Task<IActionResult> Create([Bind("Name,Preco,Unidade,Quantidade,DataEntrada,DataValidade,CategoriaId,FornecedorId")] Produto produto, IFormFile arquivoImagem)
         {
+            ModelState.Remove("arquivoImagem");
+            ModelState.Remove("Imagem");
+            ModelState.Remove("Categoria");
+            ModelState.Remove("Fornecedor");
+
             if (ModelState.IsValid)
             {
                 // Calculando o valor total (Preço x Quantidade)
@@ -100,6 +107,22 @@ namespace QuitandaBitseBananas.Controllers
 
                 _context.Add(produto);
                 await _context.SaveChangesAsync();
+
+                if (produto.Quantidade > 0)
+                {
+                    var movimentacaoInicial = new Movimentacao
+                    {
+                        ProdutoId = produto.Id,
+                        DataMovimentacao = DateTime.Now,
+                        Quantidade = produto.Quantidade,
+                        Tipo = TipoMovimentacao.Entrada,
+                        Motivo = MotivoMovimentacao.AjusteEstoque,
+                        Observacoes = "Estoque Inicial (Cadastro do Produto)"
+                    };
+                    _context.Add(movimentacaoInicial);
+                    await _context.SaveChangesAsync();
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             // Recarregar os dados para os dropdowns em caso de erro
@@ -149,14 +172,33 @@ namespace QuitandaBitseBananas.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Preco,Unidade,Quantidade,DataEntrada,DataValidade,CategoriaId,FornecedorId,Imagem")] Produto produto, IFormFile arquivoImagem, bool removerImagem)
         {
             if (id != produto.Id) return NotFound();
+
+            // remove os campos que não estão sendo validados diretamente
             ModelState.Remove("arquivoImagem");
+            ModelState.Remove("Imagem");
+            ModelState.Remove("Categoria");
+            ModelState.Remove("Fornecedor");
+            
             if (ModelState.IsValid)
             {
                 try
                 {
                     // 1. BUSCAR O PRODUTO ORIGINAL NO BANCO (Para saber qual era a imagem antiga)
-                    // Usamos AsNoTracking para não travar o Entity Framework, pois vamos atualizar o 'produto' que veio do form
-                    var produtoOriginal = await _context.Produto.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+                    var produtoOriginal = await _context.Produto.FindAsync(id);
+
+                    if (produtoOriginal == null) return NotFound();
+
+                    // 2 Atualizar apenas campos permitidos
+                    produtoOriginal.Name = produto.Name;
+                    produtoOriginal.Preco = produto.Preco;
+                    produtoOriginal.Unidade = produto.Unidade;
+                    produtoOriginal.Unidade = produto.Unidade;
+                    produtoOriginal.DataValidade = produto.DataValidade;
+                    produtoOriginal.CategoriaId = produto.CategoriaId;
+                    produtoOriginal.FornecedorId = produto.FornecedorId;
+
+                    // Recalcula o valor total usando o PREÇO NOVO * QUANTIDADE ANTIGA (REAL)
+                    produtoOriginal.ValorTotal = produtoOriginal.Preco * produtoOriginal.Quantidade;
 
                     // Caminho base das imagens
                     string caminhoPasta = Path.Combine(hostEnvironment.WebRootPath, "imagens");
@@ -203,11 +245,7 @@ namespace QuitandaBitseBananas.Controllers
                     {
                     produto.Imagem = produtoOriginal.Imagem;
                     }
-
-                    // Calculando o valor total (Preço x Quantidade)
-                    produto.ValorTotal = produto.Preco * produto.Quantidade;
                    
-                    _context.Update(produto);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

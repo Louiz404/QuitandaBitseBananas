@@ -1,14 +1,31 @@
-﻿using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using QuitandaBitseBananas.Data;
 using System.Globalization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurar o DbContext
 builder.Services.AddDbContext<QuitandaBitseBananasContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("QuitandaBitseBananasContext") ?? throw new InvalidOperationException("Connection string 'QuitandaBitseBananasContext' not found.")));
+
+
+// --- BLOCO DE CONFIGURAÇÃO DO IDENTITY (LOGIN) ---
+builder.Services.AddDefaultIdentity<Microsoft.AspNetCore.Identity.IdentityUser>(options =>
+{
+    // Configurações simplificadas para facilitar seus testes
+    options.SignIn.RequireConfirmedAccount = false; // Não precisa confirmar email
+    options.Password.RequireDigit = false;          // Aceita senha sem número
+    options.Password.RequireLowercase = false;      // Aceita senha só maiúscula
+    options.Password.RequireUppercase = false;      // Aceita senha só minúscula
+    options.Password.RequireNonAlphanumeric = false;// Aceita senha sem @#$
+    options.Password.RequiredLength = 3;            // Senha curta (ex: "123")
+})
+    .AddEntityFrameworkStores<QuitandaBitseBananasContext>(); // Conecta com seu banco
+// ------------------
 
 // Configurar a cultura da aplicação
 builder.Services.Configure<RequestLocalizationOptions>(options =>
@@ -42,12 +59,16 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+// seguir essa ordem
+app.UseAuthentication(); // O que o usuário pode fazer
+app.UseAuthorization(); // Quem é o usuário
 
-app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapRazorPages();
 
 WebApplication QuitandaBits = app;
 

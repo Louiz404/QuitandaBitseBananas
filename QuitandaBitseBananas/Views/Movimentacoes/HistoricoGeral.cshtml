@@ -1,0 +1,72 @@
+﻿@model IEnumerable<QuitandaBitseBananas.Models.Movimentacao>
+@using QuitandaBitseBananas.Models
+
+@{
+    ViewData["Title"] = "Histórico Geral";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">📜 Histórico Geral</h2>
+            <p class="text-muted">Últimas 100 movimentações da loja</p>
+        </div>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+            <i class="fa fa-arrow-left"></i> Voltar ao Painel
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th>Data / Hora</th>
+                        <th>Produto</th>
+                        <th>Tipo</th>
+                        <th>Motivo</th>
+                        <th>Qtd</th>
+                        <th>Observação</th>
+                        <th>Usuário</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        string corBadge = item.Tipo == TipoMovimentacao.Entrada ? "bg-success" : "bg-danger";
+                        string sinal = item.Tipo == TipoMovimentacao.Entrada ? "+" : "-";
+                        string corTexto = item.Tipo == TipoMovimentacao.Entrada ? "text-success" : "text-danger";
+
+                        <tr>
+                            <td>@item.DataMovimentacao.ToString("dd/MM/yy HH:mm")</td>
+
+                            <td class="fw-bold">
+                                <a asp-controller="Produtos" asp-action="Details" asp-route-id="@item.ProdutoId" class="text-decoration-none text-dark">
+                                    @item.Produto.Name
+                                </a>
+                            </td>
+
+                            <td><span class="badge @corBadge">@item.Tipo</span></td>
+
+                            <td>@item.Motivo</td>
+
+                            <td class="@corTexto fw-bold" style="font-size: 1.1em;">
+                                @sinal @item.Quantidade
+                            </td>
+
+                            <td class="text-muted small">
+                                @(item.Observacoes ?? "-")
+                            </td>
+
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="fa fa-user"></i> @(item.UsuarioId ?? "Sistema")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

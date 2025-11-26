@@ -1,0 +1,85 @@
+﻿@model IEnumerable<QuitandaBitseBananas.Models.Movimentacao>
+@using QuitandaBitseBananas.Models
+
+@{
+    ViewData["Title"] = "Histórico do Produto";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">📜 Histórico de Movimentação</h2>
+            <h4 class="text-muted">Produto: <strong>@ViewBag.NomeProduto</strong></h4>
+        </div>
+        <a asp-controller="Produtos" asp-action="Index" class="btn btn-secondary">
+            <i class="fa fa-arrow-left"></i> Voltar para Estoque
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center p-5">
+            <h4>Nada por aqui ainda!</h4>
+            <p>Este produto nunca foi movimentado.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Data / Hora</th>
+                            <th>Tipo</th>
+                            <th>Motivo</th>
+                            <th>Qtd</th>
+                            <th>Observação</th>
+                            <th>Usuário</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            // Define cor: Verde para Entrada, Vermelho para Saída
+                            string corTexto = item.Tipo == TipoMovimentacao.Entrada ? "text-success" : "text-danger";
+                            string sinal = item.Tipo == TipoMovimentacao.Entrada ? "+" : "-";
+                            string icone = item.Tipo == TipoMovimentacao.Entrada ? "fa-arrow-up" : "fa-arrow-down";
+
+                            <tr>
+                                <td>@item.DataMovimentacao.ToString("dd/MM/yyyy HH:mm")</td>
+
+                                <td>
+                                    <span class="badge @(item.Tipo == TipoMovimentacao.Entrada ? "bg-success" : "bg-danger")">
+                                        @item.Tipo
+                                    </span>
+                                </td>
+
+                                <td>@item.Motivo</td>
+
+                                <td class="@corTexto fw-bold" style="font-size: 1.1em;">
+                                    @sinal @item.Quantidade
+                                </td>
+
+                                <td class="text-muted">
+                                    @if (!string.IsNullOrEmpty(item.Observacoes))
+                                    {
+                                        <span>@item.Observacoes</span>
+                                    }
+                                    else
+                                    {
+                                        <i>-</i>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="small text-secondary">Sistema</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

@@ -79,7 +79,7 @@ namespace QuitandaBitseBananas.Models
         [Display(Name = "Nome da Categoria")]
         [Required(ErrorMessage = "O nome da categoria é obrigatório")]
         public string Name { get; set; }
-        public List<Produto> Produtos { get; set; }
+        public List<Produto>? Produtos { get; set; }
     }
 
     public class Fornecedor
@@ -91,7 +91,7 @@ namespace QuitandaBitseBananas.Models
         [Required(ErrorMessage = "O nome do fornecedor é obrigatório.")]
         public string Name { get; set; }
        
-        public List<Produto> Produtos { get; set; }
+        public List<Produto>? Produtos { get; set; }
     }
     
     

@@ -60,12 +60,18 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 form-group mb-3">
-            <label asp-for="Quantidade" class="control-label fw-bold"></label>
-            <input asp-for="Quantidade" class="form-control" type="number" id="quantidadeInput" oninput="updateValorTotal()" />
-            <span asp-validation-for="Quantidade" class="text-danger"></span>
-        </div>
+            <div class="col-md-6 form-group mb-3">
+                <label asp-for="Quantidade" class="control-label fw-bold"></label>
+
+                <input asp-for="Quantidade" class="form-control bg-light" type="number" readonly />
+
+                <span asp-validation-for="Quantidade" class="text-danger"></span>
+
+                <small class="text-muted">
+                    <i class="fa fa-info-circle"></i>
+                    Para alterar o estoque, use os botões de <b>Movimentação</b> na lista de produtos.
+                </small>
+            </div>
 
         <div class="col-md-6 form-group mb-3">
             <label asp-for="DataValidade" class="control-label fw-bold"></label>

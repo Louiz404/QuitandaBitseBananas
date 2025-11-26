@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QuitandaBitseBananas.Data;
 using QuitandaBitseBananas.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace QuitandaBitseBananas.Controllers
 {
+    [Authorize]
     public class FornecedoresController : Controller
     {
         private readonly QuitandaBitseBananasContext _context;
@@ -102,13 +104,14 @@ namespace QuitandaBitseBananas.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Fornecedor fornecedor)
         {
-            if (id != fornecedor.Id)
-            {
-                return NotFound();
-            }
+            if (id != fornecedor.Id) return NotFound();
+            
 
             if (ModelState.IsValid)
             {
+                _context.Update(fornecedor);
+                await _context.SaveChangesAsync();
+
                 try
                 {
                     _context.Update(fornecedor);

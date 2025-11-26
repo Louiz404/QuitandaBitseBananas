@@ -1,143 +1,104 @@
 ﻿@model QuitandaBitseBananas.Models.Produto
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Novo Produto";
 }
 
-<h1>Create</h1>
-
-<h4>Produto</h4>
+<h1>Novo Produto</h1>
+<h4 class="text-muted">Cadastrar item no estoque</h4>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-12">
         <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <!-- Campo Nome -->
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label fw-bold"></label>
+                <input asp-for="Name" class="form-control" placeholder="Ex: Banana Prata" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
-            <!-- Campo Preço -->
-            <div class="form-group">
-                <label asp-for="Preco" class="control-label"></label>
-                <input asp-for="Preco" class="form-control" type="text" id="precoInput" oninput="this.value = this.value.replace('.', ','); updateValorTotal()" />
-                <span asp-validation-for="Preco" class="text-danger"></span>
-            </div>
-
-            <!-- Campo Unidade -->
             <div class="row">
-                <label asp-for="Unidade" class="control-label"></label>
-                @Html.DropDownListFor(model => model.Unidade,
-                         (IEnumerable<SelectListItem>)ViewBag.UnidadesMedida,
-                         "Selecione a Unidade",
-                         new { @class = "form-control" })
-                <span asp-validation-for="Unidade" class="text-danger"></span>
-            </div>
-
-            <!-- Data de Validade -->
-            <div class="col-md-6 form-group mb-3">
-                <label asp-for="DataValidade" class="control-label fw-bold"></label>
-                <input asp-for="DataValidade" class="form-control" type="date" />
-                <span asp-validation-for="DataValidade" class="text-danger"></span>
-            </div>
-            
-            <!-- Categoria -->
-            <div class="col-md-6 form-group mb-3">
-                <label asp-for="CategoriaId" class="control-label fw-bold"></label>
-                <div class="input-group">
-                    <select asp-for="CategoriaId" class="form-control" id="selectCategoria" asp-items="ViewBag.CategoriaId">
-                        <option value="">-- Selecione a Categoria --</option>
-                    </select>
-                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalNovaCategoria">
-                        <i class="fa fa-plus"></i> +
-                    </button>
-                </div>
-                <span asp-validation-for="CategoriaId" class="text-danger"></span>
-            </div>
-           
-            <!-- Fornecedor -->
-            <div class="col-md-6 form-group mb-3">
-
-                <label asp-for="FornecedorId" class="control-label fw-bold"></label>
-
-                <div class="input-group">
-
-                    <select asp-for="FornecedorId" class="form-control" id="selectFornecedor" asp-items="ViewBag.FornecedorId">
-
-                        <option value="">-- Selecione o fornecedor --</option>
-
-                    </select>
-
-                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalNovoFornecedor">
-
-                        <i class="fa fa-plus"></i> +
-
-                    </button>
-
+                <div class="col-md-6 form-group mb-3">
+                    <label asp-for="Preco" class="control-label fw-bold"></label>
+                    <input asp-for="Preco" class="form-control" type="text" id="precoInput"
+                           oninput="this.value = this.value.replace('.', ','); updateValorTotal()" placeholder="0,00" />
+                    <span asp-validation-for="Preco" class="text-danger"></span>
                 </div>
 
-                <span asp-validation-for="FornecedorId" class="text-danger"></span>
-
+                <div class="col-md-6 form-group mb-3">
+                    <label asp-for="Unidade" class="control-label fw-bold"></label>
+                    @Html.DropDownListFor(model => model.Unidade,
+                    (IEnumerable<SelectListItem>)ViewBag.UnidadesMedida,
+                                        "Selecione a Unidade",
+                                        new { @class = "form-control" })
+                    <span asp-validation-for="Unidade" class="text-danger"></span>
+                </div>
             </div>
-            
-            <div class="modal fade" id="modalNovoFornecedor" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Novo Fornecedor Rápido</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label>Nome do Fornecedor</label>
-                                <input type="text" id="inputNovoFornecedor" class="form-control" placeholder="Ex: Zé das Frutas" />
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary" onclick="salvarFornecedorRapido()">Salvar</button>
-                        </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group mb-3">
+                    <label asp-for="Quantidade" class="control-label fw-bold"></label>
+                    <input asp-for="Quantidade" class="form-control" type="number" min="0" id="quantidadeInput" oninput="updateValorTotal()" />
+                    <span asp-validation-for="Quantidade" class="text-danger"></span>
+                    <small class="text-muted">Isso criará o estoque inicial automaticamente.</small>
+                </div>
+
+                <div class="col-md-6 form-group mb-3">
+                    <label asp-for="DataValidade" class="control-label fw-bold"></label>
+                    <input asp-for="DataValidade" class="form-control" type="date" />
+                    <span asp-validation-for="DataValidade" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group mb-3">
+                    <label asp-for="CategoriaId" class="control-label fw-bold"></label>
+                    <div class="input-group">
+                        <select asp-for="CategoriaId" class="form-control" id="selectCategoria" asp-items="ViewBag.CategoriaId">
+                            <option value="">-- Selecione a Categoria --</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalNovaCategoria" title="Nova Categoria">
+                            <i class="fa fa-plus"></i>
+                        </button>
                     </div>
+                    <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 form-group mb-3">
+                    <label asp-for="FornecedorId" class="control-label fw-bold"></label>
+                    <div class="input-group">
+                        <select asp-for="FornecedorId" class="form-control" id="selectFornecedor" asp-items="ViewBag.FornecedorId">
+                            <option value="">-- Selecione o Fornecedor --</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalNovoFornecedor" title="Novo Fornecedor">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="FornecedorId" class="text-danger"></span>
                 </div>
             </div>
 
-
-            <hr />
-
-            <!-- Novo Campo Quantidade -->
-            <div class="form-group">
-                <label asp-for="Quantidade" class="control-label"></label>
-                <input asp-for="Quantidade" class="form-control" type="number" min="0" id="quantidadeInput" oninput="updateValorTotal()" />
-                <span asp-validation-for="Quantidade" class="text-danger"></span>
-            </div>
-
-            <!-- Campo Valor Total -->
-            <div class="form-group">
-                <label for="ValorTotal" class="control-label">Valor Total</label>
-                <input type="text" id="valorTotalInput" class="form-control" readonly />
-            </div>
-            
-            <!-- Imagem -->
-            <div class="form-group mb-3">
+            <div class="form-group mb-3 p-3 bg-light border rounded">
                 <label for="arquivoImagem" class="control-label fw-bold">Foto do Produto</label>
                 <input type="file" name="arquivoImagem" id="arquivoImagem" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
                 <small class="text-muted">Formatos aceitos: JPG, PNG, GIF</small>
             </div>
 
+            <div class="form-group mb-3">
+                <label for="ValorTotal" class="control-label fw-bold">Valor Total Inicial (R$)</label>
+                <input type="text" id="valorTotalInput" class="form-control form-control-lg text-success fw-bold" readonly value="0,00" />
+            </div>
+
             <hr />
-            <!-- Botão de Submit -->
+
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Salvar Produto" class="btn btn-success btn-lg px-5" />
+                <a asp-action="Index" class="btn btn-secondary btn-lg ms-2">Voltar</a>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 <div class="modal fade" id="modalNovaCategoria" tabindex="-1" aria-hidden="true">
@@ -161,81 +122,75 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalNovoFornecedor" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Fornecedor Rápido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nome do Fornecedor</label>
+                    <input type="text" id="inputNovoFornecedor" class="form-control" placeholder="Ex: Zé das Frutas" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarFornecedorRapido()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
     <script>
-        // Isso precisa vir DEPOIS do _ValidationScriptsPartial
+        // Validação Ponto/Vírgula
         $.validator.methods.range = function (value, element, param) {
             var globalizedValue = value.replace(",", ".");
             return this.optional(element) || (globalizedValue >= param[0] && globalizedValue <= param[1]);
         }
-
         $.validator.methods.number = function (value, element) {
             return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:[\s\.,]\d{3})+)(?:[\.,]\d+)?$/.test(value);
         }
 
-        // --- FUNÇÃO DE SALVAR CATEGORIA RÁPIDA ---
+        // --- SALVAR CATEGORIA ---
         async function salvarCategoriaRapida() {
             var nomeCategoria = document.getElementById('inputNovaCategoria').value;
-
-            console.log("Botão clicado. Nome:", nomeCategoria);
-
-            if (!nomeCategoria) {
-                alert("Digite um nome para a categoria!");
-                return;
-            }
-
+            if (!nomeCategoria) { alert("Digite um nome!"); return; }
             var dados = { Name: nomeCategoria };
 
             try {
-                // Atenção: Certifique-se que a rota no Controller tem o [Route] que configuramos
                 const resposta = await fetch('/Categorias/CriarRapido', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dados)
                 });
 
                 if (resposta.ok) {
-                    const novaCategoria = await resposta.json();
-
-                    // Adiciona ao Select
-                    var select = document.getElementById('selectCategoria'); // Verifique se o ID do seu select é este mesmo
+                    const nova = await resposta.json();
+                    var select = document.getElementById('selectCategoria');
                     var option = document.createElement("option");
-                    option.text = novaCategoria.name;
-                    option.value = novaCategoria.id;
+                    option.text = nova.name;
+                    option.value = nova.id;
                     option.selected = true;
                     select.add(option);
-
-                    // Fecha o Modal
-                    var modalEl = document.getElementById('modalNovaCategoria');
-                    var modal = bootstrap.Modal.getInstance(modalEl);
-                    modal.hide();
-
-                    // Limpa
+                    bootstrap.Modal.getInstance(document.getElementById('modalNovaCategoria')).hide();
                     document.getElementById('inputNovaCategoria').value = "";
                 } else {
-                    var erroTexto = await resposta.text();
-                    alert("Erro ao salvar: " + erroTexto);
+                    alert("Erro ao salvar.");
                 }
-            } catch (erro) {
-                console.error(erro);
-                alert("Erro de conexão ou código quebrado.");
-            }
+            } catch (erro) { console.error(erro); alert("Erro de conexão."); }
         }
-                // --- FUNÇÃO DE SALVAR FORNECEDOR RÁPIDO ---
+
+        // --- SALVAR FORNECEDOR ---
         async function salvarFornecedorRapido() {
             var nomeFornecedor = document.getElementById('inputNovoFornecedor').value;
-
-            if (!nomeFornecedor) {
-                alert("Digite um nome para o fornecedor!");
-                return;
-            }
-
+            if (!nomeFornecedor) { alert("Digite um nome!"); return; }
             var dados = { Name: nomeFornecedor };
 
             try {
@@ -246,43 +201,35 @@
                 });
 
                 if (resposta.ok) {
-                    const novoFornecedor = await resposta.json();
-
-                    // Adiciona ao Select de Fornecedor
+                    const novo = await resposta.json();
                     var select = document.getElementById('selectFornecedor');
                     var option = document.createElement("option");
-                    option.text = novoFornecedor.name;
-                    option.value = novoFornecedor.id;
+                    option.text = novo.name;
+                    option.value = novo.id;
                     option.selected = true;
                     select.add(option);
-
-                    // Fecha o Modal
-                    var modalEl = document.getElementById('modalNovoFornecedor');
-                    var modal = bootstrap.Modal.getInstance(modalEl);
-                    modal.hide();
-
-                    // Limpa
+                    bootstrap.Modal.getInstance(document.getElementById('modalNovoFornecedor')).hide();
                     document.getElementById('inputNovoFornecedor').value = "";
                 } else {
-                    var erroTexto = await resposta.text();
-                    alert("Erro ao salvar: " + erroTexto);
+                    alert("Erro ao salvar.");
                 }
-            } catch (erro) {
-                console.error(erro);
-                alert("Erro de conexão.");
-            }
+            } catch (erro) { console.error(erro); alert("Erro de conexão."); }
         }
 
-        // --- SCRIPT DE CÁLCULO DO TOTAL ---
+        // --- CORREÇÃO DE CÁLCULO (PONTO VS VÍRGULA) ---
         function updateValorTotal() {
-            var preco = document.getElementById('precoInput').value;
-            var quantidade = document.getElementById('quantidadeInput').value;
-            var precoNum = parseFloat(preco);
-            var qtdNum = parseFloat(quantidade);
+            var precoTexto = document.getElementById('precoInput').value;
+            var qtdTexto = document.getElementById('quantidadeInput').value;
+
+            // Substitui vírgula por ponto para o JS calcular certo
+            var precoNum = parseFloat(precoTexto.replace(',', '.'));
+            var qtdNum = parseFloat(qtdTexto);
 
             if (!isNaN(precoNum) && !isNaN(qtdNum)) {
                 var total = precoNum * qtdNum;
                 document.getElementById('valorTotalInput').value = total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                document.getElementById('valorTotalInput').value = "0,00";
             }
         }
     </script>

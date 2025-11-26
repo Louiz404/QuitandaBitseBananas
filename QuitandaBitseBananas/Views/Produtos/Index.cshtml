@@ -37,6 +37,7 @@
                 <th>Categoria</th>
                 <th>Preço</th>
                 <th>Estoque</th>
+                <th class="text-center">Movimentar</th>
                 <th>Validade</th>
                 <th>Status</th>
                 <th class="text-end">Ações</th>
@@ -45,65 +46,54 @@
         <tbody>
             @foreach (var item in Model)
             {
-                // --- LÓGICA DO SEMÁFORO (C# dentro do HTML) ---
+                // --- LÓGICA DO SEMÁFORO ---
                 string classeCor = "";
                 string statusTexto = "Ok";
                 var diasParaVencer = (item.DataValidade - DateTime.Now).TotalDays;
 
-                if (diasParaVencer < 0)
-                {
-                    classeCor = "table-danger"; // Vermelho (Venceu)
-                    statusTexto = "VENCIDO!";
-                }
-                else if (diasParaVencer <= 5)
-                {
-                    classeCor = "table-warning"; // Amarelo (Perto de vencer)
-                    statusTexto = "Vence logo";
-                }
-                else if (item.Quantidade <= 5) // Exemplo: Menos de 5 itens
-                {
-                    classeCor = "table-info"; // Azulzinho (Estoque Baixo)
-                    statusTexto = "Estoque Baixo";
-                }
+                if (diasParaVencer < 0) { classeCor = "table-danger"; statusTexto = "VENCIDO!"; }
+                else if (diasParaVencer <= 5) { classeCor = "table-warning"; statusTexto = "Vence logo"; }
+                else if (item.Quantidade <= 5) { classeCor = "table-info"; statusTexto = "Estoque Baixo"; }
 
-                // Aplica a cor na linha inteira (tr)
                 <tr class="@classeCor">
                     <td>
                         @if (!string.IsNullOrEmpty(item.Imagem))
                         {
-                            <img src="~/imagens/@item.Imagem" alt="@item.Name"
+                            <img src="~/imagens/@item.Imagem" asp-append-version="true" alt="@item.Name"
                                  style="width: 50px; height: 50px; object-fit: cover;"
                                  class="rounded-circle border bg-white" />
                         }
                         else
                         {
-                            <span class="text-muted small">
-                                <i class="fa fa-image fa-2x"></i>
-                            </span>
+                            <span class="text-muted small"><i class="fa fa-image fa-2x"></i></span>
                         }
                     </td>
 
                     <td class="fw-bold">@item.Name</td>
-
                     <td>@(item.Categoria?.Name ?? "-")</td>
                     <td>@item.Preco.ToString("C")</td>
 
                     <td>
-                        @if (item.Quantidade == 0)
-                        {
-                            <span class="badge bg-danger">ESGOTADO</span>
-                        }
-                        else
-                        {
-                            <span>@item.Quantidade @item.Unidade</span>
-                        }
+                        <span id="qtd-@item.Id" class="badge bg-secondary" style="font-size: 1em;">
+                            @item.Quantidade
+                        </span>
+                        @item.Unidade
+                    </td>
+
+                    <td class="text-center">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-success btn-sm" onclick="abrirModalMovimentacao(@item.Id, '@item.Name', 1)" title="Entrada">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="abrirModalMovimentacao(@item.Id, '@item.Name', 2)" title="Saída">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
                     </td>
 
                     <td>@item.DataValidade.ToShortDateString()</td>
 
-                    <td>
-                        <strong>@statusTexto</strong>
-                    </td>
+                    <td><strong>@statusTexto</strong></td>
 
                     <td class="text-end">
                         <div class="btn-group btn-group-sm bg-white rounded shadow-sm">
@@ -120,29 +110,135 @@
 
 @if (!Model.Any())
 {
-    <div class="alert alert-warning mt-3 text-center">
-        Nenhum produto encontrado.
-    </div>
+    <div class="alert alert-warning mt-3 text-center">Nenhum produto encontrado.</div>
 }
+
+<div class="modal fade" id="modalMovimentacao" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tituloModal">Movimentar Estoque</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="movProdutoId" />
+                <input type="hidden" id="movTipo" />
+
+                <p id="textoProduto" class="fw-bold"></p>
+
+                <div class="form-group mb-3">
+                    <label>Quantidade</label>
+                    <input type="number" id="movQtd" class="form-control" min="1" value="1" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Motivo</label>
+                    <select id="movMotivo" class="form-control"></select>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Observação (Opcional)</label>
+                    <input type="text" id="movObs" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarMovimentacao()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
+        // --- FUNÇÃO 1: PREPARAR O MODAL ---
+        function abrirModalMovimentacao(id, nome, tipo) {
+            document.getElementById('movProdutoId').value = id;
+            document.getElementById('movTipo').value = tipo;
+            document.getElementById('movQtd').value = 1;
+            document.getElementById('movObs').value = "";
+
+            var titulo = document.getElementById('tituloModal');
+            var textoProd = document.getElementById('textoProduto');
+            var selectMotivo = document.getElementById('movMotivo');
+
+            selectMotivo.innerHTML = "";
+
+            if (tipo === 1) { // ENTRADA
+                titulo.innerText = "🟢 Entrada de Estoque";
+                titulo.className = "modal-title text-success";
+                textoProd.innerText = "Adicionando ao produto: " + nome;
+                selectMotivo.add(new Option("Compra do Fornecedor", "2"));
+                selectMotivo.add(new Option("Ajuste de Estoque", "5"));
+            } else { // SAÍDA
+                titulo.innerText = "🔴 Saída de Estoque";
+                titulo.className = "modal-title text-danger";
+                textoProd.innerText = "Retirando do produto: " + nome;
+                selectMotivo.add(new Option("Venda ao Cliente", "1"));
+                selectMotivo.add(new Option("Perda por Validade", "3"));
+                selectMotivo.add(new Option("Perda por Dano/Outro", "4"));
+                selectMotivo.add(new Option("Ajuste de Estoque", "5"));
+            }
+
+            var modal = new bootstrap.Modal(document.getElementById('modalMovimentacao'));
+            modal.show();
+        }
+
+        // --- FUNÇÃO 2: SALVAR MOVIMENTAÇÃO ---
+        async function salvarMovimentacao() {
+            var dados = {
+                ProdutoId: parseInt(document.getElementById('movProdutoId').value),
+                Quantidade: parseInt(document.getElementById('movQtd').value),
+                Tipo: parseInt(document.getElementById('movTipo').value),
+                Motivo: parseInt(document.getElementById('movMotivo').value),
+                Observacao: document.getElementById('movObs').value
+            };
+
+            if (dados.Quantidade <= 0) { alert("Quantidade inválida"); return; }
+
+            try {
+                const resposta = await fetch('/Movimentacoes/Lancar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                if (resposta.ok) {
+                    const resultado = await resposta.json();
+
+                    // Verifica se sucesso (aceita 'success' ou 'sucess' pra garantir)
+                    if (resultado.sucess || resultado.success) {
+                        var badge = document.getElementById('qtd-' + dados.ProdutoId);
+                        if(badge) badge.innerText = resultado.novaQuantidade;
+
+                        var modalEl = document.getElementById('modalMovimentacao');
+                        var modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+
+                        // alert(resultado.mensagem); // Pode descomentar se quiser o aviso
+                    }
+                } else {
+                    var erro = await resposta.text();
+                    alert("Erro: " + erro);
+                }
+            } catch (ex) {
+                console.error(ex);
+                alert("Erro de conexão.");
+            }
+        }
+
+        // --- FUNÇÃO 3: APAGAR (Que você já tinha) ---
         async function apagarProduto(idProduto, botaoClicado) {
-            // Pergunta de segurança
             if (!confirm("Tem certeza que deseja apagar este produto?")) return;
 
             try {
                 const resposta = await fetch('/Produtos/ApagarRapido', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    // Manda apenas o número do ID
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(idProduto)
                 });
 
                 if (resposta.ok) {
-                    // Mágica: Remove a linha da tabela (TR) onde o botão estava
                     var linhaTabela = botaoClicado.closest('tr');
                     linhaTabela.remove();
                 } else {

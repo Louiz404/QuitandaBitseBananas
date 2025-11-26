@@ -20,3 +20,35 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* --- ESTILO DA TELA DE LOGIN/REGISTRO --- */
+.bg-login-quitanda {
+    /* Imagem de fundo de frutas (direto do Unsplash) */
+    background: url('https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Efeito de vidro fosco no cartão */
+.card-login {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    overflow: hidden;
+}
+
+.login-header {
+    background-color: #198754; /* Verde */
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.form-floating label {
+    color: #666;
+}
